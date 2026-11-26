@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NXR Code</title>
+<style>
+:root{--bg:#0b0b14;--bg2:#13132136;--card:#15152a;--line:#26264a;--tx:#e8e8ff;--mu:#8a8ab5;--a:#8b5cf6;--b:#22d3ee;--r:#f43f5e;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column;background:radial-gradient(circle at 0 0,#2a1a5e55,transparent 50%),radial-gradient(circle at 100% 100%,#0e3b5a55,transparent 50%),var(--bg)}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.logo{font-weight:800;letter-spacing:.5px;font-size:18px;background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sp{flex:1}.ib{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px}
+.pri{background:linear-gradient(90deg,var(--a),var(--b));color:#06060f;font-weight:700;border-radius:10px;padding:9px 14px}
+.dng{color:var(--r)}
+main{flex:1;min-height:0;display:flex;flex-direction:column}
+.home{padding:16px;overflow:auto}.home h2{margin:4px 0 4px}.home p{color:var(--mu);margin:0 0 16px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.pc b{font-size:16px}.pc small{color:var(--mu)}.row{display:flex;gap:8px;margin-top:6px}.row button{flex:1}
+.tabs{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tab{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 12px;white-space:nowrap;font-size:13px;color:var(--mu)}
+.tab.on{color:var(--tx);border-color:var(--a);box-shadow:0 0 0 1px var(--a) inset}
+.ed{flex:1;min-height:0;display:flex;font:14px/1.55 ui-monospace,Menlo,Consolas,monospace}
+#gut{padding:10px 8px;text-align:right;color:var(--mu);background:#0d0d1c;overflow:hidden;user-select:none;white-space:pre;min-width:38px}
+#ta{flex:1;background:transparent;color:var(--tx);border:0;outline:0;resize:none;padding:10px;white-space:pre;overflow:auto;font:inherit;tab-size:2}
+.sym{display:flex;gap:6px;padding:7px 8px;overflow-x:auto;border-top:1px solid var(--line);background:#0d0d1c}
+.sym button{background:var(--card);border:1px solid var(--line);border-radius:8px;min-width:38px;padding:8px 6px;font:15px ui-monospace,monospace}
+.ov{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ov.on{display:flex}.ov iframe{flex:1;border:0;background:#fff;min-height:0}
+#con{height:28%;overflow:auto;background:#07070f;border-top:1px solid var(--line);padding:8px 10px;font:12px/1.5 ui-monospace,monospace}
+#con .error{color:var(--r)}#con .warn{color:#fbbf24}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:16px;padding:18px;width:min(92vw,360px)}
+dialog::backdrop{background:#000a}
+dialog input{width:100%;margin:10px 0;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font:inherit}
+.empty{color:var(--mu);text-align:center;padding:40px 10px}
+</style></head><body>
+<div class="top"><span class="logo">&lt;/&gt; NXR CODE</span><span class="sp"></span><div id="tb"></div></div>
+<main id="m"></main>
+<div class="ov" id="ov"><div class="top"><button class="ib" id="cl">← Tutup</button><b id="ovt">Preview</b><span class="sp"></span><button class="ib" id="rl">⟳ Ulang</button></div><iframe id="fr" sandbox="allow-scripts allow-modals allow-forms"></iframe><div id="con"></div></div>
+<dialog id="dg"><b id="dt"></b><input id="di" autocomplete="off"><div class="row" style="display:flex;gap:8px;justify-content:flex-end"><button class="ib" id="dn">Batal</button><button class="pri" id="dy">OK</button></div></dialog>
+<script>
+var $=function(s){return document.querySelector(s)};
+var DB={projects:{}};try{DB=JSON.parse(localStorage.getItem("nxr"))||DB}catch(e){}
+function save(){try{localStorage.setItem("nxr",JSON.stringify(DB))}catch(e){}}
+var cur=null,cf=null,lastRun=null;
+var E=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+function ask(t,v,noInput){return new Promise(function(res){var d=$("#dg");$("#dt").textContent=t;var i=$("#di");i.style.display=noInput?"none":"";i.value=v||"";d.showModal();var fin=function(x){d.close();res(x)};$("#dy").onclick=function(){fin(noInput?true:i.value.trim())};$("#dn").onclick=function(){fin(null)}})}
+var TPL={"index.html":'<!DOCTYPE html>\n<html>\n<head>\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<link rel="stylesheet" href="style.css">\n</head>\n<body>\n<h1>Halo dari NXR Code 👋</h1>\n<button onclick="hi()">Klik saya</button>\n<script src="script.js"><\/script>\n</body>\n</html>',"style.css":"body{font-family:sans-serif;text-align:center;padding:40px;background:#111;color:#fff}\nbutton{padding:12px 20px;border:0;border-radius:10px;background:#8b5cf6;color:#fff;font-size:16px}","script.js":'function hi(){alert("NXR Code jalan!");console.log("tombol diklik")}'};
+function home(){cur=null;$("#tb").innerHTML='<button class="ib" id="st">⚙</button> <button class="pri" id="np">+ Proyek</button>';var ids=Object.keys(DB.projects);
+$("#m").innerHTML='<div class="home"><h2>Proyek kamu</h2><p>Kode HTML, CSS, JS, JSX, Lua dan Python dalam satu aplikasi.</p>'+(ids.length?'<div class="grid">'+ids.map(function(id){var p=DB.projects[id];return'<div class="pc"><b>📁 '+E(p.name)+'</b><small>'+Object.keys(p.files).length+' file</small><div class="row"><button class="pri" data-o="'+id+'">Buka</button><button class="ib dng" data-d="'+id+'">Hapus</button></div></div>'}).join("")+'</div>':'<div class="empty">Belum ada proyek.<br>Tekan + Proyek untuk mulai.</div>')+'</div>';
+$("#np").onclick=async function(){var n=await ask("Nama proyek baru","proyek-"+(ids.length+1));if(!n)return;var id="p"+Date.now();DB.projects[id]={name:n,files:JSON.parse(JSON.stringify(TPL))};save();open_(id)};
+document.querySelectorAll("[data-o]").forEach(function(b){b.onclick=function(){open_(b.dataset.o)}});
+document.querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){var p=DB.projects[b.dataset.d];if(await ask('Hapus proyek "'+p.name+'" beserta semua filenya?',"",1)){delete DB.projects[b.dataset.d];save();home()}}})}
+function open_(id){cur=id;cf=Object.keys(DB.projects[id].files)[0]||null;edit()}
+function edit(){var p=DB.projects[cur];$("#tb").innerHTML='<button class="ib" id="bk">←</button> <button class="ib" id="st">⚙</button> <button class="pri" id="rn">▶ Run</button>';
+$("#m").innerHTML='<div class="tabs" id="tabs"></div><div class="ed"><div id="gut">1</div><textarea id="ta" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea></div><div class="sym" id="sym"></div>';
+$("#bk").onclick=home;$("#rn").onclick=run;tabs();
+var ta=$("#ta");ta.value=cf?p.files[cf]:"";ta.oninput=function(){if(cf){p.files[cf]=ta.value;save()}gut()};ta.onscroll=function(){$("#gut").scrollTop=ta.scrollTop};
+ta.onkeydown=function(e){if(e.key=="Tab"){e.preventDefault();ins("  ")}};gut();
+$("#sym").innerHTML=["Tab","<",">","/","{","}","(",")","[","]",";",":","=",'"',"'","$","#","!","&","|","\\"].map(function(s){return'<button>'+E(s)+'</button>'}).join("");
+document.querySelectorAll("#sym button").forEach(function(b){b.onmousedown=function(e){e.preventDefault()};b.onclick=function(){ins(b.textContent=="Tab"?"  ":b.textContent)}})}
+function ins(t){var a=$("#ta"),s=a.selectionStart;a.setRangeText(t,s,a.selectionEnd,"end");a.focus();a.oninput()}
+function gut(){var n=$("#ta").value.split("\n").length,s="";for(var i=1;i<=n;i++)s+=i+"\n";$("#gut").textContent=s}
+function tabs(){var p=DB.projects[cur];$("#tabs").innerHTML=Object.keys(p.files).map(function(f){return'<button class="tab'+(f==cf?" on":"")+'" data-f="'+E(f)+'">'+E(f)+'</button>'}).join("")+'<button class="tab" id="nf">+ File</button>'+(cf?'<button class="tab dng" id="df">🗑 '+E(cf)+'</button>':"");
+document.querySelectorAll("[data-f]").forEach(function(b){b.onclick=function(){cf=b.dataset.f;edit()}});
+$("#nf").onclick=async function(){var n=await ask("Nama file (mis. app.py, main.lua, App.jsx)","");if(!n||/[\/\\]/.test(n))return;if(!p.files[n])p.files[n]="";cf=n;save();edit()};
+var d=$("#df");if(d)d.onclick=async function(){if(await ask('Hapus file "'+cf+'"?',"",1)){delete p.files[cf];save();cf=Object.keys(p.files)[0]||null;edit()}}}
+var HOOK='<script>["log","error","warn","info"].forEach(function(k){var o=console[k];console[k]=function(){var a=[].slice.call(arguments).map(function(x){try{return typeof x=="object"?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(" ");parent.postMessage({k:k,v:a},"*");o.apply(console,arguments)}});addEventListener("error",function(e){parent.postMessage({k:"error",v:e.message+(e.lineno?" (baris "+e.lineno+")":"")},"*")})<\/script>';
+function esc(s){return s.replace(/<\/script/gi,"<\\/script")}
+function build(F,f){var e=f.split(".").pop();
+if(e=="css"||e=="txt"||e=="md"){if(F["index.html"]!=null)return build(F,"index.html");return HOOK+"<body>Tidak ada index.html untuk dijalankan.</body>"}
+if(e=="html"){var h=F[f];h=h.replace(/<link[^>]*href=["']([^"']+)["'][^>]*>/gi,function(m,u){return F[u]!=null?"<style>"+F[u]+"</style>":m});h=h.replace(/<script([^>]*?)src=["']([^"']+)["']([^>]*)><\/script>/gi,function(m,a,u,b){return F[u]!=null?"<script"+a+b+">"+esc(F[u])+"<\/script>":m});return HOOK+h}
+if(e=="js")return HOOK+'<body style="font-family:monospace"><script>'+esc(F[f])+"<\/script>";
+if(e=="jsx")return HOOK+'<div id="root"></div><script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"><\/script><script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"><\/script><script type="text/babel" data-presets="react">'+esc(F[f])+"<\/script>";
+if(e=="lua")return HOOK+'<script src="https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js"><\/script><script type="application/lua">'+esc(F[f])+"<\/script>";
+return HOOK+'<script>console.error("Bahasa .'+e+' belum bisa dijalankan di versi web. Python offline tersedia di versi APK.")<\/script>'}
+var RL={c:"c",cpp:"c++",cc:"c++",java:"java",php:"php",py:"python",go:"go",rs:"rust",rb:"ruby",kt:"kotlin",cs:"csharp",swift:"swift",ts:"typescript",sh:"bash",dart:"dart",r:"r",pl:"perl",scala:"scala",hs:"haskell",zig:"zig",nim:"nim",sql:"sqlite3"};
+function lg(k,v){var l=document.createElement("div");l.className=k;l.style.whiteSpace="pre-wrap";l.textContent="› "+v;$("#con").appendChild(l)}
+async function cfg(){var c=DB.cfg||(DB.cfg={});var u=await ask("URL server Piston milikmu, mis. http://IP-VPS:2000/api/v2",c.url||"");if(u===null)return;c.url=u.replace(/\/+$/,"");var k=await ask("API key (kosongkan jika tidak ada)",c.key||"");if(k!==null)c.key=k;save()}
+document.addEventListener("click",function(e){if(e.target.id=="st")cfg()});
+var CB={},CN=0;window.nxrCb=function(i,t){if(CB[i])CB[i](t);delete CB[i]};
+function post(u,k,b){if(window.Android&&Android.post)return new Promise(function(res,rej){var i=++CN;CB[i]=function(t){try{res(JSON.parse(t))}catch(e){rej(new Error(t))}};Android.post(i,u,k||"",b)});return fetch(u,{method:"POST",headers:Object.assign({"Content-Type":"application/json"},k?{Authorization:k}:{}),body:b}).then(function(r){return r.json()})}
+async function remote(e){var c=DB.cfg||{},F=DB.projects[cur].files;$("#con").innerHTML="";$("#con").style.height="100%";$("#fr").style.display="none";$("#fr").srcdoc="";$("#ovt").textContent="▶ "+cf+" ("+RL[e]+")";$("#ov").classList.add("on");
+if(!c.url){lg("error","Server belum diatur. Tutup lalu tekan ⚙ untuk mengisi URL server Piston.");return}
+lg("info","Menjalankan "+RL[e]+"...");var fl=[{name:cf,content:F[cf]}];Object.keys(F).forEach(function(n){if(n!=cf&&!/\.(html|css|js|jsx)$/.test(n))fl.push({name:n,content:F[n]})});
+try{var d=await post(c.url+"/execute",c.key,JSON.stringify({language:RL[e],version:"*",files:fl}));if(d.message){lg("error",d.message);return}
+if(d.compile&&d.compile.output)lg(d.compile.code?"error":"log",d.compile.output);if(d.run)lg(d.run.code?"error":"log",d.run.output||"(tidak ada output)")}catch(x){lg("error","Gagal terhubung ke server: "+x.message)}}
+function run(){if(!cf)return;var x=cf.split(".").pop();if(RL[x])return remote(x);$("#con").style.height="";$("#fr").style.display="";lastRun=cf;$("#con").innerHTML="";$("#ovt").textContent="▶ "+cf;$("#fr").srcdoc=build(DB.projects[cur].files,cf);$("#ov").classList.add("on")}
+addEventListener("message",function(e){var d=e.data;if(!d||!d.k)return;var c=$("#con"),l=document.createElement("div");l.className=d.k;l.textContent="› "+d.v;c.appendChild(l);c.scrollTop=1e9});
+$("#cl").onclick=function(){$("#ov").classList.remove("on");$("#fr").srcdoc=""};
+$("#rl").onclick=run;
+home();
+</script>
+</body></html>
